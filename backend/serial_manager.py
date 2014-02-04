@@ -51,7 +51,7 @@ class SerialManagerClass:
             'expected_command_letter_error': False,
             'unsupported_statement_error': False,
             'power_off': False,
-            'limit_hit': False,
+            'limit_hit': None,
             'serial_stop_request': False,
             'door_open': False,
             'chiller_off': False,
@@ -357,9 +357,9 @@ class SerialManagerClass:
                 self.status['power_off'] = False
 
             if 'L' in line:  # Stop: A limit was hit
-                self.status['limit_hit'] = True
+                self.status['limit_hit'] = line[line.find('L')+1:line.find('L')+2]
             else:
-                self.status['limit_hit'] = False
+                self.status['limit_hit'] = None
 
             if 'R' in line:  # Stop: by serial requested
                 self.status['serial_stop_request'] = True

@@ -268,8 +268,8 @@ $(document).ready(function(){
           $().uxmessage('error', "Power is off!"); 
           $().uxmessage('notice', "Turn on Lasersaur power then run homing cycle to reset.");          
         }
-        if (data.limit_hit) {
-          $().uxmessage('error', "Limit hit!");
+        if (data.limit_hit!=None) {
+          $().uxmessage('error', "Limit " + limit_hit + " hit!");
           $().uxmessage('notice', "Run homing cycle to reset stop mode.");
         }
         if (data.buffer_overflow) {
