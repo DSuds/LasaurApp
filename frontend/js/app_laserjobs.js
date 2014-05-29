@@ -1,7 +1,7 @@
 
 
 var minNumPassWidgets = 3;
-var maxNumPassWidgets = 32;
+var maxNumPassWidgets = 128;
 var preview_canvas_obj = null;
 
 
@@ -40,7 +40,7 @@ function refresh_preview(reload_data, read_passes_widget) {
   //               "m. Estimated Time: " + duration.toFixed(1) + "min");
   var total_length = DataHandler.getJobPathLength();
   if (total_length > 0) {
-    $('#stats_after_name').html('length: '+(total_length/1000).toFixed(1)+'m');
+    $('#stats_after_name').html('length: '+(total_length/1000).toFixed(1)+'m  time:'+DataHandler.getJobPathTime().toFixed(1)+'min');
   } else {
     $('#stats_after_name').html('');
   }

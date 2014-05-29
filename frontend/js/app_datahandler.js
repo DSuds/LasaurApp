@@ -91,7 +91,7 @@ DataHandler = {
       }
     }
     var data = {'passes': this.passes,
-                'paths_by_color': paths_by_color}
+                'paths_by_color': paths_by_color};
     return JSON.stringify(data);
   },
 
@@ -251,10 +251,10 @@ DataHandler = {
         var intensity = vals[3];
         if (typeof(pass) === 'number' && pass > 0) {
           //make sure to have enough pass widgets
-          var passes_to_create = pass - this.passes.length
+          var passes_to_create = pass - this.passes.length;
           if (passes_to_create >= 1) {
             for (var k=0; k<passes_to_create; k++) {
-              this.passes.push({'colors':[], 'feedrate':1200, 'intensity':10})
+              this.passes.push({'colors':[], 'feedrate':1200, 'intensity':10});
             }
           }
           pass = pass-1;  // convert to zero-indexed
@@ -287,8 +287,8 @@ DataHandler = {
   },
 
   hasPasses : function() {
-    if (this.passes.length > 0) {return true}
-    else {return false}
+    if (this.passes.length > 0) {return true;}
+    else {return false;}
   },
 
   clearPasses : function() {
@@ -320,7 +320,7 @@ DataHandler = {
         color_order[color] = color_count;
         color_count++;
       }
-      return color_order
+      return color_order;
   },
 
 
@@ -365,7 +365,7 @@ DataHandler = {
       stats_by_color[color] = {
         'bbox':bbox_color,
         'length':path_lenths_color
-      }
+      };
       // add to total also
       path_length_all += path_lenths_color;
       this.bboxExpand(bbox_all, bbox_color[0], bbox_color[1]);
@@ -374,7 +374,7 @@ DataHandler = {
     stats_by_color['_all_'] = {
       'bbox':bbox_all,
       'length':path_length_all
-    }
+    };
     this.stats_by_color = stats_by_color;
   },
 
@@ -393,6 +393,20 @@ DataHandler = {
       total_length += stat['length'];
     }
     return total_length;
+  },
+
+  getJobPathTime : function() {
+    var total_time = 0;
+    for (var passes in this.passes){
+    	var pass = this.passes[passes];
+ 	  	if( pass['feedrate'] > 0  && pass['intensity'] > 0 ){
+		    for (var color in pass['colors']) {
+		      stat = this.stats_by_color[pass['colors'][color]];
+		      total_time += stat['length'] / pass['feedrate'];
+		    }
+		}
+	}
+    return total_time;
   },
 
   getJobBbox : function() {
@@ -417,7 +431,7 @@ DataHandler = {
 
     var lerp = function(x0, y0, x1, y1, t) {
       return [x0*(1-t)+x1*t, y0*(1-t)+y1*t];
-    }
+    };
 
     for (var color in this.paths_by_color) {
       var paths = this.paths_by_color[color];
@@ -492,4 +506,4 @@ DataHandler = {
     return Math.round(intens * 2.55).toString();
   },
 
-}
+};
