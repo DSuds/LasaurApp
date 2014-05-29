@@ -9,7 +9,7 @@ function reset_offset() {
   $("#offset_area").css('border', '1px dashed #aaaaaa');
   send_gcode('G54\n', "Offset reset.", false);
   $('#coordinates_info').text('');
-}
+};
 
 
 
@@ -38,7 +38,7 @@ $(document).ready(function(){
       x_phy = x;
       y_phy = y;
     }
-    /// contrain
+    /// constrain
     if (!(isNaN(x_phy)) && x_phy != null) {  // allow for NaN, null
       if (x_phy < 0) {
         x_phy = 0;
@@ -72,7 +72,7 @@ $(document).ready(function(){
       gcode += 'X' + x_phy.toFixed(app_settings.num_digits);
     }
     if (!(isNaN(y_phy)) && y_phy != null) {
-      gcode += 'Y' + y_phy.toFixed(app_settings.num_digits)
+      gcode += 'Y' + y_phy.toFixed(app_settings.num_digits);
     }
     gcode += 'F' + feedrate + '\nS0\n'+air_assist_off; 
     // $().uxmessage('notice', gcode);
@@ -97,7 +97,7 @@ $(document).ready(function(){
                     feedrate + 'mm/min and ' + Math.round(intensity/2.55) + '% intensity';
     } else {
       coords_text = move_or_cut + ' to (' + x_phy.toFixed(0) + ', '+ 
-                    y_phy.toFixed(0) + ') at ' + feedrate + 'mm/min'
+                    y_phy.toFixed(0) + ') at ' + feedrate + 'mm/min';
     }
     return coords_text;
   }
@@ -105,12 +105,12 @@ $(document).ready(function(){
   function assemble_offset_text(x,y) {
     var x_phy = x*app_settings.to_physical_scale;
     var y_phy = y*app_settings.to_physical_scale;
-    return 'set offset to (' + x_phy.toFixed(0) + ', '+ y_phy.toFixed(0) + ')'
+    return 'set offset to (' + x_phy.toFixed(0) + ', '+ y_phy.toFixed(0) + ')';
   }
 
   function assemble_and_set_offset(x, y) {
     if (x == 0 && y == 0) {
-      reset_offset()
+      reset_offset();
     } else {
       $("#offset_area").show();
       $("#offset_area").animate({
@@ -132,6 +132,9 @@ $(document).ready(function(){
   }
   
 
+  function keyboard_jog(x,y){
+  	
+  }
 
   
   $("#cutting_area").mousedown(function() {
@@ -151,7 +154,7 @@ $(document).ready(function(){
     } else if (!gcode_coordinate_offset) {  
       assemble_and_send_gcode(x,y);
     } else {
-      var pos = $("#offset_area").position()
+      var pos = $("#offset_area").position();
       if ((x < pos.left) || (y < pos.top)) {       
         //// reset offset
         reset_offset();
@@ -190,9 +193,9 @@ $(document).ready(function(){
       }
     } else {
       if(e.shiftKey) {
-        coords_text = 'set offset to (' + x + ', '+ y + ')'
+        coords_text = 'set offset to (' + x + ', '+ y + ')';
       } else {
-        var pos = $("#offset_area").position()
+        var pos = $("#offset_area").position();
         if ((x < pos.left) || (y < pos.top)) {           
           coords_text = 'click to reset offset';
         } else {
@@ -210,7 +213,7 @@ $(document).ready(function(){
       var x = (e.pageX - offset.left);
       var y = (e.pageY - offset.top);     
       assemble_and_send_gcode(x,y);
-      return false
+      return false;
     }
   });
 
@@ -274,21 +277,40 @@ $(document).ready(function(){
 
   /// jog buttons ///////////////////////////////
 
+  // Send UDLR movement and message
+  function jog_command(direction, size){
+    var gcode = 'G91\nG0';
+    
+  	switch (direction) {
+  	case 'Up':
+  		gcode += 'Y-';
+  		break;
+  	case 'Down':
+  		gcode += 'Y';
+  		break;
+  	case 'Left':
+  		gcode += 'X-';
+  		break;
+  	default:
+  		gcode += 'X';
+  	};
+  	
+	gcode += app_settings.jog_distance[size] + 'F6000\nG90\n';
+    send_gcode(gcode, 'Jogging ' + direction + ' ' + app_settings.jog_distance[size] + 'mm...', false);
+  }
+  
+  
   $("#jog_up_btn").click(function(e) {
-    var gcode = 'G91\nG0Y-10F6000\nG90\n';
-    send_gcode(gcode, "Moving Up ...", false);
+  	jog_command('Up', 1);
   });   
   $("#jog_left_btn").click(function(e) {
-    var gcode = 'G91\nG0X-10F6000\nG90\n';
-    send_gcode(gcode, "Moving Left ...", false);
+  	jog_command('Left', 1);
   });   
   $("#jog_right_btn").click(function(e) {
-    var gcode = 'G91\nG0X10F6000\nG90\n';
-    send_gcode(gcode, "Moving Right ...", false);
+  	jog_command('Right', 1);
   });
   $("#jog_down_btn").click(function(e) {
-    var gcode = 'G91\nG0Y10F6000\nG90\n';
-    send_gcode(gcode, "Moving Down ...", false);
+  	jog_command('Down', 1);
   });
 
 
@@ -296,88 +318,76 @@ $(document).ready(function(){
 
   $(document).on('keydown', null, 'right', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0X10F6000\nG90\n';
-      send_gcode(gcode, "Moving Right ...", false);
+	  jog_command('Right', 1);
       return false;
     }
   });
   $(document).on('keydown', null, 'alt+right', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0X2F6000\nG90\n';
-      send_gcode(gcode, "Moving Right ...", false);
+	  jog_command('Right', 0);
       return false;
     }
   });
   $(document).on('keydown', null, 'shift+right', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0X50F6000\nG90\n';
-      send_gcode(gcode, "Moving Right ...", false);
+	  jog_command('Right', 2);
       return false;
     }
   });
 
   $(document).on('keydown', null, 'left', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0X-10F6000\nG90\n';
-      send_gcode(gcode, "Moving Left ...", false);
+	  jog_command('Left', 1);
       return false;
     }
   });
   $(document).on('keydown', null, 'alt+left', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0X-2F6000\nG90\n';
-      send_gcode(gcode, "Moving Left ...", false);
+	  jog_command('Left', 0);
       return false;
     }
   });
   $(document).on('keydown', null, 'shift+left', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0X-50F6000\nG90\n';
-      send_gcode(gcode, "Moving Left ...", false);
+	  jog_command('Left', 2);
       return false;
     }
   });
 
   $(document).on('keydown', null, 'up', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0Y-10F6000\nG90\n';
-      send_gcode(gcode, "Moving Up ...", false);
+	  jog_command('Up', 1);
       return false;
     }
   });
   $(document).on('keydown', null, 'alt+up', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0Y-2F6000\nG90\n';
-      send_gcode(gcode, "Moving Up ...", false);
+	  jog_command('Up', 0);
       return false;
     }
   });
   $(document).on('keydown', null, 'shift+up', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0Y-50F6000\nG90\n';
-      send_gcode(gcode, "Moving Up ...", false);
+	  jog_command('Up', 2);
       return false;
     }
   });
 
   $(document).on('keydown', null, 'down', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0Y10F6000\nG90\n';
-      send_gcode(gcode, "Moving Down ...", false);
+	  jog_command('Down', 1);
       return false;
     }
   });
   $(document).on('keydown', null, 'alt+down', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0Y2F6000\nG90\n';
-      send_gcode(gcode, "Moving Down ...", false);
+	  jog_command('Down', 0);
       return false;
     }
   });
   $(document).on('keydown', null, 'shift+down', function(e){
     if ($('#tab_mover').is(":visible")) {
-      var gcode = 'G91\nG0Y50F6000\nG90\n';
-      send_gcode(gcode, "Moving Down ...", false);
+	  jog_command('Down', 2);
       return false;
     }
   });
@@ -410,10 +420,10 @@ $(document).ready(function(){
 
   $("#air_on_btn").click(function(e) {
     var gcode = 'M80\n';
-    send_gcode(gcode, "Air assist on ...", false) 
+    send_gcode(gcode, "Air assist on ...", false);
   });  
   $("#air_off_btn").click(function(e) {
     var gcode = 'M81\n';
-    send_gcode(gcode, "Air assist off ...", false) 
+    send_gcode(gcode, "Air assist off ...", false);
   });
 });  // ready
