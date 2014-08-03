@@ -104,7 +104,7 @@ $(document).ready(function(){
       success: function (data) {
         if (ext == '.svg' || ext == '.SVG') {
           $().uxmessage('success', "SVG parsed."); 
-          $('#dpi_import_info').html('Using <b>' + data.dpi + 'dpi</b> for converting px units.');
+          $('#dpi_import_info').html('Dimensions are '+ (data.bbox[0]).toFixed(1) + 'x' + (data.bbox[1]).toFixed(1) + ' mm using <b>' + data.dpi + 'dpi</b> for converting px units.');
         } else if (ext == '.dxf' || ext == '.DXF') {
           $().uxmessage('success', "DXF parsed."); 
           $('#dpi_import_info').html('Assuming mm units in DXF file.');

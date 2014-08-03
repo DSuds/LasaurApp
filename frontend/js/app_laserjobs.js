@@ -30,8 +30,8 @@ function refresh_preview(reload_data, read_passes_widget) {
   if (read_passes_widget === true) {
     readPassesWidget();
   }
+  var bbox = DataHandler.draw_bboxes(preview_canvas_obj, app_settings.to_canvas_scale);
   DataHandler.draw(preview_canvas_obj, app_settings.to_canvas_scale);
-  DataHandler.draw_bboxes(preview_canvas_obj, app_settings.to_canvas_scale);
   // var stats = GcodeReader.getStats();
   // var length = stats.cuttingPathLength; 
   // var duration = stats.estimatedTime;
@@ -40,7 +40,8 @@ function refresh_preview(reload_data, read_passes_widget) {
   //               "m. Estimated Time: " + duration.toFixed(1) + "min");
   var total_length = DataHandler.getJobPathLength();
   if (total_length > 0) {
-    $('#stats_after_name').html('length: '+(total_length/1000).toFixed(1)+'m  time:'+DataHandler.getJobPathTime().toFixed(1)+'min');
+    $('#stats_after_name').html('area: ' + (bbox[2]-bbox[0]).toFixed(1) + 'x' + (bbox[3]-bbox[1]).toFixed(1) + 'mm<br>' +
+    		'length: '+(total_length/1000).toFixed(1)+'m     time:'+DataHandler.getJobPathTime().toFixed(1)+'min');
   } else {
     $('#stats_after_name').html('');
   }

@@ -164,22 +164,29 @@ DataHandler = {
     canvas.noFill();
     var x_prev = 0;
     var y_prev = 0;
+    var x_off = 0;
+    var y_off = 0;
+    if (gcode_coordinate_offset != undefined){
+    	x_off = gcode_coordinate_offset[0]*scale;
+    	y_off = gcode_coordinate_offset[1]*scale;
+    }
+
     for (var color in this.paths_by_color) {
       if (exclude_colors === undefined || !(color in exclude_colors)) {
         var paths = this.paths_by_color[color];
         for (var k=0; k<paths.length; k++) {
           var path = paths[k];
           if (path.length > 0) {
-            var x = path[0][0]*scale;
-            var y = path[0][1]*scale;
+            var x = path[0][0]*scale+x_off;
+            var y = path[0][1]*scale+y_off;
             canvas.stroke('#aaaaaa');
             canvas.line(x_prev, y_prev, x, y);
             x_prev = x;
             y_prev = y;
             canvas.stroke(color);
             for (vertex=1; vertex<path.length; vertex++) {
-              var x = path[vertex][0]*scale;
-              var y = path[vertex][1]*scale;
+              var x = path[vertex][0]*scale+x_off;
+              var y = path[vertex][1]*scale+y_off;
               canvas.line(x_prev, y_prev, x, y);
               x_prev = x;
               y_prev = y;
@@ -198,15 +205,21 @@ DataHandler = {
     var ymin;
     var xmax;
     var ymax;
+    var x_off = 0;
+    var y_off = 0;
+    if (gcode_coordinate_offset != undefined){
+      	x_off = gcode_coordinate_offset[0]*scale;
+      	y_off = gcode_coordinate_offset[1]*scale;
+      }
     var bbox_combined = [Infinity, Infinity, 0, 0];
     // for all job colors
     for (var color in this.getPassesColors()) {
       // draw color bboxes
       stat = this.stats_by_color[color];
-      xmin = stat['bbox'][0]*scale;
-      ymin = stat['bbox'][1]*scale;
-      xmax = stat['bbox'][2]*scale;
-      ymax = stat['bbox'][3]*scale;
+      xmin = stat['bbox'][0]*scale+x_off;
+      ymin = stat['bbox'][1]*scale+y_off;
+      xmax = stat['bbox'][2]*scale+x_off;
+      ymax = stat['bbox'][3]*scale+y_off;
       canvas.stroke('#dddddd');
       canvas.line(xmin,ymin,xmin,ymax);
       canvas.line(xmin,ymax,xmax,ymax);
@@ -225,6 +238,7 @@ DataHandler = {
     canvas.line(xmin,ymax,xmax,ymax);
     canvas.line(xmax,ymax,xmax,ymin);
     canvas.line(xmax,ymin,xmin,ymin);
+    return bbox_combined;
   },
 
 
