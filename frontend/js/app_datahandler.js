@@ -167,8 +167,8 @@ DataHandler = {
     var x_off = 0;
     var y_off = 0;
     if (gcode_coordinate_offset != undefined){
-    	x_off = gcode_coordinate_offset[0]*scale;
-    	y_off = gcode_coordinate_offset[1]*scale;
+    	x_off = gcode_coordinate_offset[0];
+    	y_off = gcode_coordinate_offset[1];
     }
 
     for (var color in this.paths_by_color) {
@@ -208,8 +208,8 @@ DataHandler = {
     var x_off = 0;
     var y_off = 0;
     if (gcode_coordinate_offset != undefined){
-      	x_off = gcode_coordinate_offset[0]*scale;
-      	y_off = gcode_coordinate_offset[1]*scale;
+      	x_off = gcode_coordinate_offset[0];
+      	y_off = gcode_coordinate_offset[1];
       }
     var bbox_combined = [Infinity, Infinity, 0, 0];
     // for all job colors
@@ -238,7 +238,8 @@ DataHandler = {
     canvas.line(xmin,ymax,xmax,ymax);
     canvas.line(xmax,ymax,xmax,ymin);
     canvas.line(xmax,ymin,xmin,ymin);
-    return bbox_combined;
+    var area = [xmin/scale, ymin/scale, xmax/scale, ymax/scale];
+    return area;
   },
 
 

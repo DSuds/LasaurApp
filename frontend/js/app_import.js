@@ -36,7 +36,7 @@ $(document).ready(function(){
   //reset tap
   $('#canvas_properties .colorbtns').html('');  // reset colors
   canvas.background('#ffffff');
-  $('#dpi_import_info').html('Supported file formats are: <b>SVG</b>, <b>DXF</b> (<a href="http://labs.nortd.com/lasersaur/manual/dxf_import">subset</a>)');
+  $('#dpi_import_info').html('Supported file formats are: <b>SVG</b>, <b>DXF</b> (<a href="http://labs.nortd.com/lasersaur/manual/dxf_import">subset</a>), NC (G Code), LSA');
 
 
   $('#bed_size_note').html(app_settings.work_area_dimensions[0]+'x'+
@@ -86,8 +86,10 @@ $(document).ready(function(){
     } else if (ext == '.dxf' || ext == '.DXF') {
       $().uxmessage('notice', "parsing DXF ...");
       $().uxmessage('warning', "DXF import is limited to R14, lines, arcs, lwpolylines, and mm units");
-    } else if (ext == '.ngc' || ext == '.NGC') {
+    } else if (ext == '.gnc' || ext == '.GNC' || ext == '.nc' || ext == '.nc' || ext == '.gc' || ext == '.gc') {
       $().uxmessage('notice', "parsing G-Code ...");
+    } else if (ext == '.lsa' || ext == '.LSA') {
+      $().uxmessage('notice', "parsing LSA ...");
     }
     if (filedata.length > 102400) {
       $().uxmessage('notice', "Importing large files may take a few minutes.");
@@ -104,12 +106,15 @@ $(document).ready(function(){
       success: function (data) {
         if (ext == '.svg' || ext == '.SVG') {
           $().uxmessage('success', "SVG parsed."); 
-          $('#dpi_import_info').html('Dimensions are '+ (data.bbox[0]).toFixed(1) + 'x' + (data.bbox[1]).toFixed(1) + ' mm using <b>' + data.dpi + 'dpi</b> for converting px units.');
+          $('#dpi_import_info').html('Dimensions are  <b>'+ (data.bbox[0]).toFixed(1) + 'x' + (data.bbox[1]).toFixed(1) + 'mm / ' + (data.bbox[0]/25.4).toFixed(2) + 'x' + (data.bbox[1]/25.4).toFixed(2) + 'in</b> using ' + data.dpi + 'dpi for converting px units.');
         } else if (ext == '.dxf' || ext == '.DXF') {
           $().uxmessage('success', "DXF parsed."); 
           $('#dpi_import_info').html('Assuming mm units in DXF file.');
         } else if (ext == '.ngc' || ext == '.NGC') {
-          $().uxmessage('success', "G-Code parsed."); 
+            $().uxmessage('success', "G-Code parsed."); 
+        } else if (ext == '.lsa' || ext == '.LSA') {
+            $().uxmessage('success', "LSA parsed."); 
+          $('#dpi_import_info').html('Dimensions are  <b>'+ (data.bbox[0]).toFixed(1) + 'x' + (data.bbox[1]).toFixed(1) + 'mm / ' + (data.bbox[0]/25.4).toFixed(2) + 'x' + (data.bbox[1]/25.4).toFixed(2) + 'in</b>.');
         } else {
           $().uxmessage('warning', "File extension not supported. Import SVG, DXF, or G-Code files."); 
         }

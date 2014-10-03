@@ -8,11 +8,17 @@ from bottle import *
 from serial_manager import SerialManager
 from flash import flash_upload, reset_atmega
 from build import build_firmware
-from filereaders import read_svg, read_dxf, read_ngc
+from filereaders import read_svg, read_dxf, read_ngc, read_lsa
+from users import user_badge_in
+try:
+    import pydevd
+    pydevd.settrace('localhost', stdoutToServer=True, stderrToServer=True)
+except:
+    print 'Not debugging.'
 
-
+# Default parameters 
 APPNAME = "lasaurapp"
-VERSION = "13.06b"
+VERSION = "14.01a"
 COMPANY_NAME = "com.nortd.labs"
 SERIAL_PORT = None
 BITSPERSECOND = 57600
@@ -92,6 +98,7 @@ def run_with_callback(host, port):
     server.timeout = 0.01
     server.quiet = True
     print "Persistent storage root is: " + storage_dir()
+    print "File resource root is: " + resources_dir()
     print "-----------------------------------------------------------------------------"
     print "Bottle server starting up ..."
     print "Serial is set to %d bps" % BITSPERSECOND
@@ -126,18 +133,6 @@ def run_with_callback(host, port):
             break
     print "\nShutting down..."
     SerialManager.close()
-
-        
-
-
-@route('/longtest')
-def longtest_handler():
-    fp = open("longtest.ngc")
-    for line in fp:
-        SerialManager.queue_gcode_line(line)
-    return "Longtest queued."
-    
-
 
 @route('/css/:path#.+#')
 def static_css_handler(path):
@@ -451,6 +446,15 @@ def reset_atmega_handler():
 @route('/gcode', method='POST')
 def job_submit_handler():
     job_data = request.forms.get('job_data')
+    user_job = request.forms.get('user_job')
+    user = 0
+
+    if user_job=='true':
+        ''' Get user badge '''
+        user = user_badge_in();
+        if user=='0':
+            return "__no_user__"
+    
     if job_data and SerialManager.is_connected():
         lines = job_data.split('\n')
         print "Adding to queue %s lines" % len(lines)
@@ -496,10 +500,13 @@ def file_reader():
             res = read_dxf(filedata, TOLERANCE, optimize)
         elif filename[-4:] in ['.svg', '.SVG']: 
             res = read_svg(filedata, dimensions, TOLERANCE, dpi_forced, optimize)
-        elif filename[-4:] in ['.ngc', '.NGC']:
+        elif filename[-4:] in ['.lsa', '.LSA']:
+            res = read_lsa(filedata, TOLERANCE, optimize)
+        elif filename[-4:] in ['.ngc', '.NGC'] or filename[-3:] in ['.nc','.NC','.gc', '.GC']:
             res = read_ngc(filedata, TOLERANCE, optimize)
         else:
             print "error: unsupported file format"
+            return "error: unsupported file format"
 
         # print boundarys
         jsondata = json.dumps(res)
@@ -682,9 +689,59 @@ else:
             if os.path.isfile(CONFIG_FILE):
                 fp = open(CONFIG_FILE)
                 line = fp.readline().strip()
-                if len(line) > 3:
-                    SERIAL_PORT = line
-                    print "Using serial device '"+ SERIAL_PORT +"' from '" + CONFIG_FILE + "'."
+                # Support old style file with one line of serial port
+                # New configs should start with a '#' prefixed comment line
+                if not line.startswith('#') and len(line) > 3:
+                     SERIAL_PORT = line
+                     print "Using serial device '"+ SERIAL_PORT +"' from '" + CONFIG_FILE + "'."
+                     line = '';
+                     
+                # Read configuration from file
+                while len(line) > 0:
+                    eq = line.find('+')
+
+                    # Skip comments and empty lines
+                    if line[0] == '#' or eq == -1:
+                        line = fp.readline().strip()
+                        continue
+                    
+                    key = line[0:eq-1].strip()
+                    val = line[eq+1:].strip()
+                    
+                    if key == 'SERIAL_PORT':
+                        SERIAL_PORT = val
+                        print "Using serial device '"+ SERIAL_PORT +"' from '" + CONFIG_FILE + "'."
+                    elif key == 'BADGE_READER':
+                        BADGE_READER = val
+                    elif key == 'APPNAME':
+                        APPNAME = val
+                    elif key == 'VERSION':
+                        VERSION = val
+                    elif key == 'COMPANY_NAME':
+                        COMPANY_NAME = val
+                    elif key == 'BITSPERSECOND':
+                        BITSPERSECOND = val
+                    elif key == 'NETWORK_PORT':
+                        NETWORK_PORT = val
+                    elif key == 'HARDWARE':
+                        HARDWARE = val
+                    elif key == 'COOKIE_KEY':
+                        COOKIE_KEY = val
+                    elif key == 'FIRMWARE':
+                        FIRMWARE = val
+                    elif key == 'WIDTH':
+                        WIDTH = val
+                    elif key == 'HEIGHT':
+                        HEIGHT = val
+                    elif key == 'TOLERANCE':
+                        TOLERANCE = val
+                    else:
+                        print 'Unknown entry in config file \'' + line + '\''
+                        
+                    line = fp.readline().strip()
+                    
+                # wend file reading
+                close(fp)
 
     if not SERIAL_PORT:
         if args.match:

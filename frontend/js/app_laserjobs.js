@@ -442,8 +442,8 @@ $(document).ready(function(){
     readPassesWidget();
     var filedata = DataHandler.getGcode()
     var filename = $('#job_name').val();
-    if (filename.slice(-4) != '.gnc') {
-      filename = filename + '.gnc';
+    if (filename.slice(-4) != '.nc') {
+      filename = filename + '.nc';
     }
     generate_download(filename, filedata);
     return false;

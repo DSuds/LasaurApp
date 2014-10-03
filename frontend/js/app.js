@@ -59,10 +59,14 @@ function send_gcode(gcode, success_msg, progress) {
       $.ajax({
         type: "POST",
         url: "/gcode",
-        data: {'job_data':gcode},
+        data: {'job_data':gcode, 'user_job':progress},
         // dataType: "json",
         success: function (data) {
-          if (data == "__ok__") {
+          if (data == "__bad_user__") {
+              $().uxmessage('error', 'User does not have permission.');
+          } else if (data == "__no_user__") {
+              $().uxmessage('error', 'No user badged in.');
+          } else if (data == "__ok__") {
             $().uxmessage('success', success_msg);
             if (progress = true) {
               // show progress bar, register live updates
@@ -288,6 +292,12 @@ $(document).ready(function(){
               !$('#origin_set_btn').is(":focus"))
           {
             var x = parseFloat(data.x).toFixed(2) - app_settings.table_offset[0];
+            var y = parseFloat(data.y).toFixed(2) - app_settings.table_offset[1];
+            if (gcode_coordinate_offset!=undefined){
+              x -= gcode_coordinate_offset[0]*app_settings.to_physical_scale;
+              y -= gcode_coordinate_offset[1]*app_settings.to_physical_scale;
+            }
+
             $('#x_location_field').val(x.toFixed(2));
             $('#x_location_field').animate({
               opacity: 0.5
@@ -319,7 +329,7 @@ $(document).ready(function(){
         lasaurapp_version_reported = true;
       }
       // schedule next hardware poll
-      setTimeout(function() {poll_hardware_status()}, 4000);
+      setTimeout(function() {poll_hardware_status()}, 2000);
     }).error(function() {
       // lost connection to server
       connect_btn_set_state(false);
